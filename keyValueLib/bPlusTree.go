@@ -292,62 +292,42 @@ func searchForKey(str string, data []leafNodeKey) string {
 
 func (bpt *bPlusTree) findPath(keyToFind string) {
 
-	type loopStruct struct {
-		keys []internalNodeKey
-		node *internalNode
-	}
+	currentNode := bpt.rootInternalNode
 
-	var queue []loopStruct
-
-	queue = append(queue, loopStruct{
-		keys: bpt.rootInternalNode.keys,
-		node: bpt.rootInternalNode,
-	})
+	found := false
 
 	for {
-		var item loopStruct
-		item, queue = queue[0], queue[1:]
 
-		found := false
+		found = false
 
-		for _, key := range item.keys {
-
+		for _, key := range currentNode.keys {
 			if keyToFind < key.key {
 				found = true
 				if key.leafPointer != nil {
 					fmt.Print(key.key)
-					break
+					fmt.Println("")
+					return
 				} else if key.treePointer != nil {
 					fmt.Print(key.key)
-					queue = append(queue, loopStruct{
-						keys: key.treePointer.keys,
-						node: key.treePointer,
-					})
+					currentNode = key.treePointer
 					break
 				}
 			}
 		}
 
-		if found {
-			break
+		if !found {
+			if currentNode.lastKey.leafPointer != nil {
+				fmt.Print(currentNode.keys[len(currentNode.keys)-1].key)
+				fmt.Println("")
+				return
+			} else if currentNode.lastKey.treePointer != nil {
+				fmt.Print(currentNode.keys[len(currentNode.keys)-1].key)
+				currentNode = currentNode.lastKey.treePointer
+			}
 		}
-
-		if item.node.lastKey.treePointer != nil {
-			fmt.Print(item.node.keys[len(item.node.keys)-1].key)
-			queue = append(queue, loopStruct{
-				keys: item.node.lastKey.treePointer.keys,
-				node: item.node.lastKey.treePointer,
-			})
-		}
-
-		if len(queue) == 0 {
-			fmt.Print(item.node.keys[len(item.node.keys)-1].key)
-			break
-		}
-
 		fmt.Print(" -> ")
 	}
-	fmt.Println("")
+
 }
 
 func main() {
@@ -366,6 +346,7 @@ func main() {
 	tree.add(leafNodeKey{key: "e", data: "THIS IS DATA E"})
 	tree.add(leafNodeKey{key: "f", data: "THIS IS DATA F"})
 	tree.add(leafNodeKey{key: "g", data: "THIS IS DATA G"})
+	tree.add(leafNodeKey{key: "1", data: "THIS IS DATA 1"})
 
 	tree.findPath("g")
 
